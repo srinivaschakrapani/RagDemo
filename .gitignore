@@ -1,0 +1,31 @@
+# Environment & Credentials
+.env
+.env*
+*.env
+*.pem
+*.key
+*.crt
+
+# Python
+.venv/
+venv/
+__pycache__/
+*.pyc
+*.pyo
+
+# Node & Next.js
+node_modules/
+.next/
+.vercel/
+out/
+build/
+dist/
+*.tsbuildinfo
+
+# IDE & Editor files
+.claude/
+.gemini/
+.vscode/
+.idea/
+.DS_Store
+

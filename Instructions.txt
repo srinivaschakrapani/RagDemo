@@ -1,0 +1,14 @@
+I want to build a working demo a a part of the trainign session that coversg the RAG , Vectorless RAG and their comparisons ion action
+
+the demo should prioivde a intuituon ,  visualization and deep dive into the RAG and the vectorless RAG , also high level view of the architecture 
+
+take some examples that can be demoed to engineering audience ina.n hour session , there all types of audience mostly AI enthusiasts
+
+host the app in the Vercel and the model in kmodal with a clean and cool UI thnat provides a way to demonstate amnd work on it in live mode 
+
+feel free to use any lcoa VECTOR DB ZERO COST , I AM OKAY WITH THE latency 
+
+provide the phases and plan and estiomated cost 
+
+
+I have a model GEMMA 2B fine tuned in. /Users/srinivaschakrapani/work/SLMBootCamp/Gemma or /Users/srinivaschakrapani/work/SLMBootCamp/SLM125 hjosted ion modal the details top log into thje account acn be found int eh aforementioend directoties
