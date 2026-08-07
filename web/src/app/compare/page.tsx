@@ -35,7 +35,7 @@ export default function ComparePage() {
   const vectorLoadingMessage = useRotatingMessage(VECTOR_LOADING_MESSAGES, vectorStatus === "loading");
   const pageindexLoadingMessage = useRotatingMessage(PAGEINDEX_LOADING_MESSAGES, pageindexStatus === "loading");
 
-  async function onAsk(q?: string) {
+  async function onAsk(q?: string, vectorTopK = 5) {
     const asked = (q ?? question).trim();
     if (!asked || loading) return;
 
@@ -49,7 +49,7 @@ export default function ComparePage() {
     fetch("/api/rag-vector", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ question: asked, top_k: 5 }),
+      body: JSON.stringify({ question: asked, top_k: vectorTopK }),
     })
       .then((res) => parseApiResponse<VectorRAGResponse>(res))
       .then((data) => {
@@ -171,15 +171,17 @@ export default function ComparePage() {
         </p>
         <p className="mb-3 text-[11px] leading-5 text-foreground/60">
           Amlodipine&apos;s Adverse Reactions section has two DailyMed subsections — 6.1 (clinical
-          trials) and 6.2 (postmarketing) — stored as separate corpus passages. Vector RAG&apos;s
-          top-k similarity search can retrieve one without the other; Vectorless RAG fetches every
-          passage filed under the parent section as a single unit, so both are always included
-          together.
+          trials) and 6.2 (postmarketing) — stored as separate corpus passages. To make the
+          difference visible, this button runs Vector RAG at{" "}
+          <code className="rounded bg-background/60 px-1 py-0.5">top_k=1</code>: it retrieves only
+          the single most-similar passage (6.1 clinical trials) and misses 6.2 postmarketing.
+          Vectorless RAG instead fetches every passage filed under the parent section as one unit,
+          so both subsections are always included together — watch the two answers diverge.
         </p>
         <button
           onClick={() => {
             setQuestion(PAGEINDEX_EDGE_CASE_QUESTION);
-            onAsk(PAGEINDEX_EDGE_CASE_QUESTION);
+            onAsk(PAGEINDEX_EDGE_CASE_QUESTION, 1);
           }}
           disabled={loading}
           className="rounded-full border border-surface-border px-2.5 py-1 text-[11px] text-foreground/60 transition-colors hover:border-foreground/40 hover:text-foreground disabled:opacity-40"
