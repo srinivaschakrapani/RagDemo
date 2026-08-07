@@ -216,7 +216,7 @@ function buildVectorSteps(result: VectorRAGResponse, askedQuestion: string): Ste
         <div className="flex flex-col gap-3">
           <p>
             The assembled passage and the original question are sent to the self-hosted Gemma 4 2B
-            model the PageIndex lane also calls — identical generator, so any difference in the
+            model the Vectorless lane also calls — identical generator, so any difference in the
             final answer comes from retrieval alone.
           </p>
           <CodeBlock>
@@ -245,6 +245,10 @@ function buildVectorSteps(result: VectorRAGResponse, askedQuestion: string): Ste
           <p className="mt-2 border-t border-surface-border pt-2 text-[11px] text-foreground/40">
             {(result.timing_ms / 1000).toFixed(1)}s end-to-end · ~{result.tokens_used} tokens ·{" "}
             {result.llm_calls} LLM call{result.llm_calls === 1 ? "" : "s"}
+          </p>
+          <p className="text-[11px] leading-5 text-foreground/50">
+            Gemma 4 2B was called exactly once, here, to generate this answer. Embedding and FAISS
+            retrieval above are pure math — no LLM involved until this final step.
           </p>
         </div>
       ),

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import {
+  Abbr,
   Accordion,
   AskBox,
   EXAMPLE_QUESTIONS,
@@ -116,7 +117,7 @@ export default function ComparePage() {
         />
         <ResultColumn
           color="pageindex"
-          title="PageIndex RAG"
+          title="Vectorless RAG"
           status={pageindexStatus}
           error={pageindexError}
           loadingMessage={pageindexLoadingMessage}
@@ -150,7 +151,7 @@ export default function ComparePage() {
             </div>
             <div>
               <p className="mb-2 text-xs font-semibold" style={{ color: "var(--pageindex)" }}>
-                PageIndex RAG
+                Vectorless RAG
               </p>
               {pageindexResult ? (
                 <Accordion color="pageindex" items={buildPageIndexSteps(pageindexResult)} />
@@ -171,7 +172,7 @@ export default function ComparePage() {
         <p className="mb-3 text-[11px] leading-5 text-foreground/60">
           Amlodipine&apos;s Adverse Reactions section has two DailyMed subsections — 6.1 (clinical
           trials) and 6.2 (postmarketing) — stored as separate corpus passages. Vector RAG&apos;s
-          top-k similarity search can retrieve one without the other; PageIndex fetches every
+          top-k similarity search can retrieve one without the other; Vectorless RAG fetches every
           passage filed under the parent section as a single unit, so both are always included
           together.
         </p>
@@ -343,7 +344,7 @@ function buildPageIndexSteps(result: PageIndexRAGResponse): AccordionItem[] {
 }
 
 function TradeoffsTable() {
-  const rows = [
+  const rows: [string, React.ReactNode, React.ReactNode][] = [
     [
       "Setup cost",
       "Embed + index the whole corpus up front",
@@ -363,7 +364,10 @@ function TradeoffsTable() {
     [
       "Explainability",
       "A similarity score",
-      "A readable ToC decision trace, plus the exact section text used",
+      <>
+        A readable <Abbr term="ToC" expansion="Table of Contents" /> decision trace, plus the exact
+        section text used
+      </>,
     ],
   ];
   return (
@@ -377,7 +381,7 @@ function TradeoffsTable() {
               Classic RAG
             </th>
             <th className="pb-2 font-medium" style={{ color: "var(--pageindex)" }}>
-              PageIndex RAG
+              Vectorless RAG
             </th>
           </tr>
         </thead>

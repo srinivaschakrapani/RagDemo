@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { CodeBlock } from "../shared";
-import type { ThemeColor } from "../shared";
 
 const XML_SNIPPET = `<document xmlns="urn:hl7-org:v3">
   <id root="557bfedd-1dff-a1ff-e063-6294a90ad7bc"/>
@@ -80,32 +79,6 @@ const SECTIONS: SectionRow[] = [
   { code: "51945-4", name: "Package Label.Principal Display Panel", title: "—", kept: false },
 ];
 
-const LANES: {
-  color: ThemeColor;
-  title: string;
-  href: string;
-  points: string[];
-}[] = [
-  {
-    color: "vector",
-    title: "Vector RAG",
-    href: "/vector",
-    points: [
-      "Every kept passage is embedded once, offline, with a local MiniLM model and held in a FAISS index.",
-      "At query time the question is embedded too and FAISS returns the nearest passages by cosine similarity.",
-    ],
-  },
-  {
-    color: "pageindex",
-    title: "PageIndex RAG",
-    href: "/pageindex",
-    points: [
-      "No LLM at build time — kept passages are regrouped by drug into a two-level table of contents (section → sub-section).",
-      "At query time an LLM reasons over the ToC to pick the right document, then the right section(s), before reading the full text.",
-    ],
-  },
-];
-
 type ExternalLink = { href: string; label: string; blurb: string };
 
 const EXTERNAL_LINKS: ExternalLink[] = [
@@ -149,7 +122,7 @@ export default function AboutDataPage() {
           About the Data
         </h1>
         <p className="mt-3 text-sm leading-6 text-foreground/70">
-          Everything in this demo — Vector and PageIndex RAG — is built from the same corpus of
+          Everything in this demo — Vector and Vectorless RAG — is built from the same corpus of
           real FDA drug labels. This page explains where that corpus comes from, what the raw
           label documents look like, and which parts of them actually feed the demo.
         </p>
@@ -290,44 +263,7 @@ export default function AboutDataPage() {
 
       <section>
         <p className="text-xs font-semibold tracking-wide text-foreground/50 uppercase">
-          One corpus, two retrieval lanes
-        </p>
-        <p className="mt-2 text-sm leading-6 text-foreground/70">
-          Both RAG strategies in this demo read the exact same kept passages — they just process
-          them differently downstream:
-        </p>
-        <div className="mt-3 grid gap-4 sm:grid-cols-2">
-          {LANES.map((lane) => (
-            <div key={lane.title} className="flex flex-col gap-2 rounded-2xl border border-surface-border bg-surface p-4">
-              <h3 className="text-sm font-bold" style={{ color: `var(--${lane.color})` }}>
-                {lane.title}
-              </h3>
-              <ul className="flex flex-col gap-2 text-xs leading-5 text-foreground/70">
-                {lane.points.map((p, i) => (
-                  <li key={i} className="flex gap-1.5">
-                    <span
-                      className="mt-1 h-1 w-1 shrink-0 rounded-full"
-                      style={{ background: `var(--${lane.color})` }}
-                    />
-                    {p}
-                  </li>
-                ))}
-              </ul>
-              <Link
-                href={lane.href}
-                className="mt-1 self-start text-xs font-medium underline decoration-dotted underline-offset-2"
-                style={{ color: `var(--${lane.color})` }}
-              >
-                Try it →
-              </Link>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      <section>
-        <p className="text-xs font-semibold tracking-wide text-foreground/50 uppercase">
-          Verify it yourself — authoritative sources
+          Sources of data
         </p>
         <p className="mt-2 text-sm leading-6 text-foreground/70">
           Nothing above is proprietary — every code, schema, and label referenced on this page is

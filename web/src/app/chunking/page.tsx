@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { CodeBlock, StepThrough } from "../shared";
 import type { Step } from "../shared";
 
@@ -83,8 +84,42 @@ export default function ChunkingPage() {
   );
 }
 
+function escapeXml(s: string): string {
+  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+function buildXmlExcerpt(example: ChunkingExample): string {
+  const target =
+    example.sections.find((s) => s.section.toLowerCase().startsWith("indications & usage")) ??
+    example.sections[0];
+  const isIndications = target.section.toLowerCase().startsWith("indications & usage");
+  const codeAttr = isIndications
+    ? ` code="34067-9" displayName="INDICATIONS &amp; USAGE SECTION"`
+    : "";
+  const textPreview = escapeXml(target.text.length > 400 ? target.text.slice(0, 400) + " …" : target.text);
+  const otherCount = example.sections.length - 1;
+
+  return `<document xmlns="urn:hl7-org:v3">
+  <title>${escapeXml(example.drug_name)}</title>
+  <!-- id / setId / versionNumber / author: identity + manufacturer metadata, omitted here -->
+  <component>
+    <structuredBody>
+      <component>
+        <section>
+          <code${codeAttr}/>
+          <title>${escapeXml(target.section)}</title>
+          <text>${textPreview}</text>
+        </section>
+      </component>
+      <!-- ...${otherCount} more <component><section> block${otherCount === 1 ? "" : "s"}, one per kept section... -->
+    </structuredBody>
+  </component>
+</document>`;
+}
+
 function buildChunkingSteps(example: ChunkingExample): Step[] {
   const rawPreview = example.sections.map((s) => `[${s.section}] ${s.text}`).join("\n\n");
+  const xmlExcerpt = buildXmlExcerpt(example);
 
   return [
     {
@@ -104,6 +139,39 @@ function buildChunkingSteps(example: ChunkingExample): Step[] {
             {example.sections.length} sections — far too much to hand an LLM as one block for a
             single-fact question, and far too coarse to embed as one vector.
           </p>
+        </div>
+      ),
+    },
+    {
+      id: "raw-data",
+      label: "The raw XML",
+      content: (
+        <div className="flex flex-col gap-3">
+          <p>
+            Before any splitting strategy runs, here&apos;s where the data actually starts: one kept
+            section from <strong>{example.drug_name}</strong>&apos;s real SPL label, in the same HL7
+            v3 XML shape covered on the{" "}
+            <Link href="/about-data" className="underline decoration-dotted underline-offset-2">
+              About Data
+            </Link>{" "}
+            page.
+          </p>
+          <CodeBlock>{xmlExcerpt}</CodeBlock>
+          <p className="text-[11px] leading-5 text-foreground/50">
+            This section already survived an earlier, offline preprocessing pass over the raw SPL
+            XML — one that drops boilerplate (packaging metadata, storage instructions, contact
+            info) and keeps only clinically load-bearing sections. See{" "}
+            <Link href="/about-data" className="underline decoration-dotted underline-offset-2">
+              About Data
+            </Link>{" "}
+            for the full kept-vs-dropped table.
+          </p>
+          <p className="text-[11px] leading-5 text-foreground/50">
+            Parsing pulls every kept section out of XML like this into flat records — this is what
+            actually gets reassembled into Markdown and handed to docling, all{" "}
+            {example.sections.length} of them:
+          </p>
+          <CodeBlock>{rawPreview.length > 1200 ? rawPreview.slice(0, 1200) + " …" : rawPreview}</CodeBlock>
         </div>
       ),
     },
@@ -162,19 +230,6 @@ function buildChunkingSteps(example: ChunkingExample): Step[] {
       ),
     },
     {
-      id: "boundaries",
-      label: "Raw label",
-      content: (
-        <div className="flex flex-col gap-3">
-          <p>
-            The actual sections docling worked from, for reference — this is what got parsed out of
-            the raw SPL XML in Phase 0 before chunking ever ran.
-          </p>
-          <CodeBlock>{rawPreview.length > 2000 ? rawPreview.slice(0, 2000) + " …" : rawPreview}</CodeBlock>
-        </div>
-      ),
-    },
-    {
       id: "result",
       label: "Result",
       content: (
@@ -190,10 +245,11 @@ function buildChunkingSteps(example: ChunkingExample): Step[] {
             its section heading.
           </p>
           <p className="mt-2 border-t border-surface-border pt-2 text-[11px] leading-5 text-foreground/50">
-            The Vector RAG tab uses this same one-passage-per-section idea (see modal/
-            spl_corpus_build.py) to build the 598-passage corpus it embeds into FAISS — structure-
-            aware chunking isn&apos;t just tidier, it&apos;s what keeps each retrieved passage about
-            one fact instead of a blend of several.
+            Structure-aware chunking isn&apos;t just tidier — it&apos;s what keeps each retrieved
+            passage about one fact instead of a blend of several. The real corpus build (
+            <code>spl_corpus_build.py</code>) uses this same one-passage-per-section idea and saves
+            the result to <code>ragdemo_corpus.jsonl</code> — the file every Vector RAG container
+            reads on startup.
           </p>
         </div>
       ),

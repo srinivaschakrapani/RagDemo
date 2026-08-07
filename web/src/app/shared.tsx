@@ -10,30 +10,39 @@ export const EXAMPLE_QUESTIONS = [
   "What are the warnings for taking clonazepam?",
 ];
 
+// Ordered to match the real pipeline sequence (see buildVectorSteps in vector/page.tsx):
+// embed -> search FAISS -> rank -> assemble the passages -> wake the generator.
 export const VECTOR_LOADING_MESSAGES = [
   "Embedding your question…",
-  "Searching the vector DB…",
+  "Searching FAISS for nearest passages…",
   "Ranking by cosine similarity…",
-  "Waking the Gemma A10G (cold starts take ~60s)…",
   "Reading the top-k chunks…",
+  "Waking the Gemma A10G (cold starts take ~60s)…",
 ];
 
+// Ordered to match the real pipeline sequence (see buildPageIndexSteps in pageindex/page.tsx):
+// read the ToC -> pick document -> pick section(s) -> fetch content -> wake the generator.
 export const PAGEINDEX_LOADING_MESSAGES = [
   "Reading the table of contents…",
   "Picking the right document…",
   "Picking the right section(s)…",
-  "Waking the Gemma A10G (cold starts take ~60s)…",
   "Reading the full section text…",
+  "Waking the Gemma A10G (cold starts take ~60s)…",
 ];
 
-/** Cycles through `messages` at random start, one at a time, while `active` is true. */
+/** Cycles through `messages` in order, one at a time, restarting from the first
+ * whenever `active` turns true — so the sequence always plays in true pipeline order. */
 export function useRotatingMessage(messages: string[], active: boolean, intervalMs = 1700): string {
-  const [index, setIndex] = useState(() => Math.floor(Math.random() * messages.length));
+  const [index, setIndex] = useState(0);
 
   useEffect(() => {
     if (!active) return;
+    const reset = setTimeout(() => setIndex(0), 0);
     const t = setInterval(() => setIndex((i) => (i + 1) % messages.length), intervalMs);
-    return () => clearInterval(t);
+    return () => {
+      clearTimeout(reset);
+      clearInterval(t);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [active]);
 
@@ -160,6 +169,29 @@ export function ObservationDetail({ observation }: { observation: unknown }) {
     return <p>{obs.ok ? "done." : `no answer — ${String(obs.reason ?? "unknown")}`}</p>;
   }
   return null;
+}
+
+/** Inline abbreviation with a click-to-toggle popup explaining what it stands for. */
+export function Abbr({ term, expansion }: { term: string; expansion: string }) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <span className="relative inline-block">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        onBlur={() => setOpen(false)}
+        className="cursor-help underline decoration-dotted underline-offset-2"
+      >
+        {term}
+      </button>
+      {open && (
+        <span className="animate-fade-in-up absolute left-1/2 top-full z-20 mt-1.5 w-max max-w-[200px] -translate-x-1/2 rounded-md border border-surface-border bg-surface px-2.5 py-1.5 text-[11px] leading-4 text-foreground/80 shadow-lg">
+          {expansion}
+        </span>
+      )}
+    </span>
+  );
 }
 
 export type Step = { id: string; label: string; content: React.ReactNode };

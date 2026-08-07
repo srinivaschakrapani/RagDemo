@@ -3,6 +3,7 @@
 import { useState } from "react";
 import TocView from "./toc-view";
 import {
+  Abbr,
   AskBox,
   CodeBlock,
   EXAMPLE_QUESTIONS,
@@ -55,12 +56,24 @@ export default function PageIndexPage() {
     <div className="mx-auto flex max-w-3xl flex-col gap-6 px-6 py-10">
       <div>
         <h1 className="text-2xl font-bold" style={{ color: "var(--pageindex)" }}>
-          PageIndex RAG
+          Vectorless RAG
         </h1>
         <p className="mt-1 text-sm leading-6 text-foreground/70">
-          No embeddings, no graph. An offline pass groups every drug label&apos;s own section
-          titles into a table of contents. Ask something, then step through how Gemma reasons
-          over that ToC to pick a document, then a section, then reads its full text.
+          No embeddings, no vector index. An offline pass groups every drug label&apos;s own
+          section titles into a table of contents (<Abbr term="ToC" expansion="Table of Contents" />).
+          Ask something, then step through how Gemma reasons over that ToC to pick a document,
+          then a section, then reads its full text.
+          This demo implements that idea with{" "}
+          <a
+            href="https://github.com/VectifyAI/PageIndex"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline decoration-dotted underline-offset-2"
+          >
+            PageIndex
+          </a>
+          , a reasoning-based retrieval method built exactly for this: search by document structure
+          instead of vector similarity.
         </p>
       </div>
 
@@ -109,6 +122,22 @@ function buildPageIndexSteps(result: PageIndexRAGResponse, askedQuestion: string
 
   return [
     {
+      id: "toc-built",
+      label: "ToC built (offline)",
+      content: (
+        <div className="flex flex-col gap-3">
+          <p>
+            Before any question arrives, an offline batch job (<code>pageindex_build.py</code>)
+            reads the corpus (<code>ragdemo_corpus.jsonl</code>) once and regroups every drug
+            label&apos;s own section titles into a two-level table of contents per drug — no LLM
+            call needed for this part, since it&apos;s just the corpus&apos;s existing titles,
+            reorganized. The result is saved to <code>pageindex.json</code>, on the same Modal
+            Volume as the corpus. Everything below reasons over that pre-built file.
+          </p>
+        </div>
+      ),
+    },
+    {
       id: "ask",
       label: "Ask",
       content: (
@@ -131,7 +160,12 @@ function buildPageIndexSteps(result: PageIndexRAGResponse, askedQuestion: string
               <>
                 The self-hosted Gemma 4 2B model reads the question plus every drug&apos;s name and
                 category, and picks the single document it&apos;s about — a reasoning step, not a
-                similarity search.
+                similarity search. Concretely: it&apos;s handed a plain bulleted list like{" "}
+                <code>- {result.matched_document ?? "Drug Name"} (category)</code> for every label
+                in the corpus, plus the question, and told to return strict JSON —{" "}
+                <code>{"{"}&quot;drug_name&quot;: &quot;...&quot;{"}"}</code> — naming its pick
+                verbatim. The app then just parses that JSON straight out of Gemma&apos;s raw text
+                output; no separate classifier or search index is involved.
               </>
             ) : (
               <>
@@ -142,12 +176,28 @@ function buildPageIndexSteps(result: PageIndexRAGResponse, askedQuestion: string
             )}
           </p>
           {result.matched_document ? (
-            <span
-              className="w-fit rounded-full px-2.5 py-1 text-[11px] font-medium text-white"
-              style={{ background: "var(--pageindex)" }}
-            >
-              {result.matched_document}
-            </span>
+            <>
+              <div>
+                <p className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-foreground/40">
+                  Source document selected
+                </p>
+                <span
+                  className="w-fit rounded-full px-2.5 py-1 text-[11px] font-medium text-white"
+                  style={{ background: "var(--pageindex)" }}
+                >
+                  {result.matched_document}
+                </span>
+              </div>
+              {result.toc && (
+                <div>
+                  <p className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-foreground/40">
+                    The data this unlocks — {result.matched_document}&apos;s own {result.toc.length}{" "}
+                    top-level section{result.toc.length === 1 ? "" : "s"}
+                  </p>
+                  <TocView drugName={result.matched_document} sections={result.toc} matchedTitles={[]} />
+                </div>
+              )}
+            </>
           ) : (
             <p className="italic text-foreground/50">No document matches this question.</p>
           )}
@@ -246,6 +296,17 @@ function buildPageIndexSteps(result: PageIndexRAGResponse, askedQuestion: string
             {(result.timing_ms / 1000).toFixed(1)}s end-to-end · {result.facts.length} section
             {result.facts.length === 1 ? "" : "s"}&apos; worth of passages · ~{result.tokens_used}{" "}
             tokens · {result.llm_calls} LLM call{result.llm_calls === 1 ? "" : "s"}
+          </p>
+          <p className="text-[11px] leading-5 text-foreground/50">
+            Gemma 4 2B was called for:{" "}
+            {[
+              docViaGemma && "picking the document",
+              secViaGemma && "picking the section(s)",
+              "generating this answer",
+            ]
+              .filter(Boolean)
+              .join(", ")}
+            . The ToC build itself used no LLM at all.
           </p>
         </div>
       ),

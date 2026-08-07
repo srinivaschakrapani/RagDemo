@@ -28,16 +28,13 @@ from docling.document_converter import DocumentConverter
 CORPUS_PATH = Path(__file__).parent / "ragdemo_corpus.jsonl"
 OUT_PATH = Path(__file__).parent.parent / "web" / "public" / "chunking-examples.json"
 
-# Chosen for narrative variety: a plain label, one with nested sub-indications
-# (Clonazepam's Seizure Disorders / Panic Disorder), a long multi-section
-# biologic monograph, and an OTC Drug-Facts-style label.
+# Chosen for narrative variety: one with nested sub-indications (Clonazepam's
+# Seizure Disorders / Panic Disorder), a long multi-section label, and a short
+# OTC Drug-Facts-style label.
 EXAMPLE_DRUGS = [
-    "Finasteride",
     "Clonazepam",
-    "Hydroxyzine hydrochloride",
-    "Metformin hydrochloride",
     "Ibuprofen",
-    "KRESLADI",
+    "Hydroxyzine hydrochloride",
 ]
 
 NAIVE_WINDOW_WORDS = 60

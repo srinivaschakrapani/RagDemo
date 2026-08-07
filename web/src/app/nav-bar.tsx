@@ -4,11 +4,11 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const LINKS = [
-  { href: "/", label: "Intuition" },
   { href: "/about-data", label: "About Data" },
+  { href: "/", label: "Intuition" },
   { href: "/chunking", label: "Chunking" },
   { href: "/vector", label: "Vector RAG" },
-  { href: "/pageindex", label: "PageIndex RAG" },
+  { href: "/pageindex", label: "Vectorless RAG" },
   { href: "/compare", label: "Compare" },
 ] as const;
 
@@ -19,7 +19,7 @@ export default function NavBar() {
     <header className="sticky top-0 z-30 border-b border-surface-border bg-surface/80 backdrop-blur-sm">
       <nav className="mx-auto flex max-w-4xl items-center gap-1 px-6 py-3">
         <span className="mr-3 bg-gradient-to-r from-accent to-accent-2 bg-clip-text text-sm font-bold text-transparent">
-          RAG · PageIndex RAG
+          Vector RAG · Vectorless RAG
         </span>
         <div className="flex flex-1 gap-1">
           {LINKS.map((link) => {

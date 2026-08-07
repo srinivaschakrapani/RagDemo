@@ -14,8 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "RAG vs. PageIndex RAG",
-  description: "A live comparison of classic vector-DB RAG and PageIndex's index-free, table-of-contents retrieval.",
+  title: "Vector RAG vs. Vectorless RAG",
+  description: "A live comparison of classic vector-DB RAG and Vectorless RAG's index-free, table-of-contents retrieval (implemented here with PageIndex).",
 };
 
 export default function RootLayout({

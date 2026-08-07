@@ -65,33 +65,18 @@ const TOC_LINES = [
   "Clonazepam — Contraindications",
 ];
 
-const ADVANCED_CONCEPTS = [
-  {
-    title: "Hybrid search",
-    body: "Run dense (embeddings) and sparse (BM25/keyword) retrieval together, then merge the two ranked lists — often with Reciprocal Rank Fusion (RRF). Catches both semantic matches and exact rare-term matches like names or IDs, which is exactly where our two lanes individually struggle.",
-  },
-  {
-    title: "MMR (Maximal Marginal Relevance)",
-    body: "A re-ranking rule that penalizes candidates too similar to ones already picked, so top-k isn't 5 near-duplicate chunks of the same paragraph.",
-  },
-  {
-    title: "Query rewriting / HyDE",
-    body: "Before embedding the question, have an LLM rewrite it or hallucinate a plausible answer, then embed *that* — it often sits closer in vector space to real answer passages than the bare question does.",
-  },
-  {
-    title: "Chunking strategy",
-    body: "This corpus uses structure-aware chunking — one passage per SPL label section (indications, dosage, warnings, …), built with docling — rather than fixed-size windows, so a chunk boundary never falls mid-thought. See the Chunking tab for a step-by-step walkthrough on real labels.",
-  },
-  {
-    title: "ToC granularity",
-    body: "PageIndex's answer quality depends on how descriptive a label's own section titles are — a vaguely named section can get skipped by the selection step even though it holds the answer. This is the PageIndex analogue of vector RAG's chunking-strategy tradeoff.",
-  },
+type PipelineTab = "vector" | "vectorless" | "comparison";
+
+const PIPELINE_TABS: { key: PipelineTab; label: string; color: "vector" | "pageindex" | "accent" }[] = [
+  { key: "vector", label: "Vector RAG", color: "vector" },
+  { key: "vectorless", label: "Vectorless RAG", color: "pageindex" },
+  { key: "comparison", label: "Comparison", color: "accent" },
 ];
 
 export default function PipelineAnimation() {
+  const [tab, setTab] = useState<PipelineTab>("vector");
   const [step, setStep] = useState(0);
-  const [playing, setPlaying] = useState(true);
-  const [showAdvanced, setShowAdvanced] = useState(false);
+  const [playing, setPlaying] = useState(false);
 
   useEffect(() => {
     if (!playing) return;
@@ -104,11 +89,37 @@ export default function PipelineAnimation() {
     setStep(((next % STEP_COUNT) + STEP_COUNT) % STEP_COUNT);
   }
 
+  const vectorLane = (
+    <Lane
+      color="vector"
+      upfront="Done once, ahead of time: all 598 passages chunked, embedded, and held in FAISS entirely in memory."
+      nodes={VECTOR_NODES}
+      captions={VECTOR_CAPTIONS}
+      whys={VECTOR_WHY}
+      algos={VECTOR_ALGOS}
+      step={step}
+      extra={<VectorExtra step={step} />}
+    />
+  );
+
+  const vectorlessLane = (
+    <Lane
+      color="pageindex"
+      upfront="Done once, ahead of time: labels are grouped by drug, and each one's own section titles become a table of contents — no LLM call needed."
+      nodes={PAGEINDEX_NODES}
+      captions={PAGEINDEX_CAPTIONS}
+      whys={PAGEINDEX_WHY}
+      algos={PAGEINDEX_ALGOS}
+      step={step}
+      extra={<PageIndexExtra step={step} />}
+    />
+  );
+
   return (
     <div className="rounded-2xl border border-surface-border bg-surface p-5">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
         <p className="text-xs font-semibold tracking-wide text-foreground/50 uppercase">
-          Watch a question flow through both pipelines
+          Watch a question flow through the pipeline{tab === "comparison" ? "s" : ""}
         </p>
         <div className="flex items-center gap-1.5">
           <span className="mr-1 font-mono text-[10px] text-foreground/40">
@@ -125,58 +136,48 @@ export default function PipelineAnimation() {
           </ControlButton>
         </div>
       </div>
+
+      <div className="mb-4 flex gap-1.5 rounded-full border border-surface-border bg-background/40 p-1">
+        {PIPELINE_TABS.map((t) => {
+          const isActive = t.key === tab;
+          return (
+            <button
+              key={t.key}
+              onClick={() => setTab(t.key)}
+              aria-pressed={isActive}
+              className="flex-1 rounded-full px-3 py-1.5 text-xs font-semibold transition-colors"
+              style={{
+                background: isActive ? `var(--${t.color})` : "transparent",
+                color: isActive ? "#fff" : "var(--foreground)",
+                opacity: isActive ? 1 : 0.55,
+              }}
+            >
+              {t.label}
+            </button>
+          );
+        })}
+      </div>
+
       <p className="mb-4 -mt-2 text-[11px] text-foreground/40">
         Click ◀ / ▶ to present it one step at a time while you talk — that pauses the auto-play.
       </p>
 
-      <div className="grid gap-8 sm:grid-cols-2">
-        <Lane
-          color="vector"
-          upfront="Done once, ahead of time: all 598 passages chunked, embedded, and held in FAISS entirely in memory."
-          nodes={VECTOR_NODES}
-          captions={VECTOR_CAPTIONS}
-          whys={VECTOR_WHY}
-          algos={VECTOR_ALGOS}
-          step={step}
-          extra={<VectorExtra step={step} />}
-        />
-        <Lane
-          color="pageindex"
-          upfront="Done once, ahead of time: labels are grouped by drug, and each one's own section titles become a table of contents — no LLM call needed."
-          nodes={PAGEINDEX_NODES}
-          captions={PAGEINDEX_CAPTIONS}
-          whys={PAGEINDEX_WHY}
-          algos={PAGEINDEX_ALGOS}
-          step={step}
-          extra={<PageIndexExtra step={step} />}
-        />
-      </div>
+      {tab === "comparison" ? (
+        <div className="grid gap-8 sm:grid-cols-2">
+          {vectorLane}
+          {vectorlessLane}
+        </div>
+      ) : tab === "vector" ? (
+        vectorLane
+      ) : (
+        vectorlessLane
+      )}
 
       <p className="mt-5 text-[11px] leading-4 text-foreground/50">
         Both run on Modal (CPU for retrieval, the same self-hosted, GPU-served Gemma 4 2B for
         generation). This is a stylized replay for intuition — the live pages further up run the
         real thing (and this demo&apos;s vector lane skips re-ranking, using the ANN score directly).
       </p>
-
-      <div className="mt-4 border-t border-surface-border pt-4">
-        <button
-          onClick={() => setShowAdvanced((s) => !s)}
-          className="flex w-full items-center justify-between text-left text-xs font-semibold tracking-wide text-foreground/60 uppercase hover:text-foreground"
-        >
-          <span>Advanced RAG concepts these pipelines don&apos;t show yet</span>
-          <span className={`inline-block transition-transform ${showAdvanced ? "rotate-180" : ""}`}>▾</span>
-        </button>
-        {showAdvanced && (
-          <ul className="mt-3 flex flex-col gap-3 animate-fade-in-up">
-            {ADVANCED_CONCEPTS.map((c) => (
-              <li key={c.title} className="text-xs leading-5">
-                <span className="font-semibold text-foreground">{c.title}.</span>{" "}
-                <span className="text-foreground/60">{c.body}</span>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
     </div>
   );
 }
