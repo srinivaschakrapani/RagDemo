@@ -6,6 +6,7 @@ import {
   AskBox,
   CodeBlock,
   EXAMPLE_QUESTIONS,
+  Expandable,
   Spinner,
   StepThrough,
   VECTOR_LOADING_MESSAGES,
@@ -181,7 +182,7 @@ function buildVectorSteps(result: VectorRAGResponse, askedQuestion: string): Ste
                         {c.score.toFixed(3)}
                       </span>
                     </div>
-                    <p className="line-clamp-3 text-xs leading-4">{c.text}</p>
+                    <Expandable text={c.text} lines={3} className="text-xs leading-4" />
                   </li>
                 ))}
               </ul>

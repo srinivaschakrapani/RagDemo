@@ -7,6 +7,7 @@ import {
   AskBox,
   CodeBlock,
   EXAMPLE_QUESTIONS,
+  Expandable,
   PAGEINDEX_LOADING_MESSAGES,
   Spinner,
   StepThrough,
@@ -247,7 +248,7 @@ function buildPageIndexSteps(result: PageIndexRAGResponse, askedQuestion: string
             <ul className="flex flex-col gap-1.5">
               {result.facts.map((fact, i) => (
                 <li key={i} className="rounded-lg border border-surface-border bg-background/30 p-2.5 text-xs">
-                  {fact}
+                  <Expandable text={fact} lines={4} />
                 </li>
               ))}
             </ul>

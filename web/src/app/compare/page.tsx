@@ -6,6 +6,7 @@ import {
   Accordion,
   AskBox,
   EXAMPLE_QUESTIONS,
+  Expandable,
   ObservationDetail,
   PAGEINDEX_LOADING_MESSAGES,
   Spinner,
@@ -281,7 +282,7 @@ function buildVectorSteps(result: VectorRAGResponse): AccordionItem[] {
                   score {c.score.toFixed(3)}
                 </span>
               </div>
-              <p>{c.text}</p>
+              <Expandable text={c.text} lines={3} />
             </li>
           ))}
         </ul>
@@ -295,7 +296,7 @@ function buildVectorSteps(result: VectorRAGResponse): AccordionItem[] {
           <p className="text-[10px] font-semibold uppercase tracking-wide text-foreground/40">
             Passage handed to Gemma
           </p>
-          <p className="whitespace-pre-wrap">{passageSentToGemma}</p>
+          <Expandable text={passageSentToGemma} lines={4} />
           <p className="mt-2 text-[10px] font-semibold uppercase tracking-wide text-foreground/40">Answer</p>
           <p className="whitespace-pre-wrap font-medium text-foreground">{result.answer}</p>
         </div>
@@ -334,9 +335,10 @@ function buildPageIndexSteps(result: PageIndexRAGResponse): AccordionItem[] {
           <p className="text-[10px] font-semibold uppercase tracking-wide text-foreground/40">
             Section text handed to Gemma
           </p>
-          <p className="whitespace-pre-wrap">
-            {passageSentToGemma || "(no content — no matching document/section found)"}
-          </p>
+          <Expandable
+            text={passageSentToGemma || "(no content — no matching document/section found)"}
+            lines={4}
+          />
           <p className="mt-2 text-[10px] font-semibold uppercase tracking-wide text-foreground/40">Answer</p>
           <p className="whitespace-pre-wrap font-medium text-foreground">{result.answer}</p>
         </div>

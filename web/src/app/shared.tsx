@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 export type ThemeColor = "vector" | "pageindex" | "chunking";
 
@@ -123,7 +123,9 @@ export function ObservationDetail({ observation }: { observation: unknown }) {
       return (
         <ul className="flex flex-col gap-1">
           {observation.map((fact, i) => (
-            <li key={i}>{String(fact)}</li>
+            <li key={i}>
+              <Expandable text={String(fact)} lines={4} />
+            </li>
           ))}
         </ul>
       );
@@ -191,6 +193,50 @@ export function Abbr({ term, expansion }: { term: string; expansion: string }) {
         </span>
       )}
     </span>
+  );
+}
+
+/** Long passage/chunk text collapsed to `lines` with a native "…" ellipsis,
+ * plus a Show more/less toggle. The toggle only appears when the text actually
+ * overflows the clamp — short passages render plain, with no button. */
+export function Expandable({
+  text,
+  lines = 3,
+  className = "",
+}: {
+  text: string;
+  lines?: number;
+  className?: string;
+}) {
+  const [expanded, setExpanded] = useState(false);
+  const [overflowing, setOverflowing] = useState(false);
+  const ref = useRef<HTMLParagraphElement>(null);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || expanded) return;
+    setOverflowing(el.scrollHeight > el.clientHeight + 1);
+  }, [text, lines, expanded]);
+
+  const clampStyle: React.CSSProperties = expanded
+    ? {}
+    : { display: "-webkit-box", WebkitBoxOrient: "vertical", WebkitLineClamp: lines, overflow: "hidden" };
+
+  return (
+    <div>
+      <p ref={ref} className={`whitespace-pre-wrap ${className}`} style={clampStyle}>
+        {text}
+      </p>
+      {(overflowing || expanded) && (
+        <button
+          type="button"
+          onClick={() => setExpanded((e) => !e)}
+          className="mt-1 text-[10px] font-semibold uppercase tracking-wide text-foreground/40 transition-colors hover:text-foreground/70"
+        >
+          {expanded ? "Show less" : "Show more"}
+        </button>
+      )}
+    </div>
   );
 }
 
