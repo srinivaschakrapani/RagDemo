@@ -125,7 +125,7 @@ function buildSteps(): Step[] {
   return [
     {
       id: "raw-xml",
-      label: "1. Raw XML",
+      label: "Raw XML",
       content: (
         <div className="flex flex-col gap-3">
           <p>
@@ -145,7 +145,7 @@ function buildSteps(): Step[] {
     },
     {
       id: "extract",
-      label: "2. Extract & filter",
+      label: "Extract & filter",
       content: (
         <div className="flex flex-col gap-3">
           <p>
@@ -168,7 +168,7 @@ function buildSteps(): Step[] {
     },
     {
       id: "target-format",
-      label: "3. Target format",
+      label: "Target format",
       content: (
         <div className="flex flex-col gap-3">
           <p>
@@ -186,7 +186,7 @@ function buildSteps(): Step[] {
     },
     {
       id: "fork",
-      label: "4. Two paths diverge",
+      label: "Two paths diverge",
       content: (
         <div className="flex flex-col gap-4">
           <p>
@@ -227,7 +227,7 @@ function buildSteps(): Step[] {
     },
     {
       id: "toc-build",
-      label: "5. Vectorless: building the ToC",
+      label: "Vectorless: building the ToC",
       content: (
         <div className="flex flex-col gap-3">
           <p>
@@ -252,7 +252,7 @@ function buildSteps(): Step[] {
     },
     {
       id: "llm-calls",
-      label: "6. LLM calls in Vectorless",
+      label: "LLM calls in Vectorless",
       content: (
         <div className="flex flex-col gap-3">
           <p>
@@ -296,7 +296,7 @@ function buildSteps(): Step[] {
     },
     {
       id: "storage",
-      label: "7. Where it all lives",
+      label: "Where it all lives",
       content: (
         <div className="flex flex-col gap-3">
           <p>
